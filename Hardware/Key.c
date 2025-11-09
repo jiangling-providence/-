@@ -1,8 +1,6 @@
 #include "stm32f10x.h"                  // Device header
 #include "Delay.h"
 
-static uint8_t Mode = 0;
-
 /**
   * 函    数：按键初始化
   * 参    数：无
@@ -11,17 +9,14 @@ static uint8_t Mode = 0;
 void Key_Init(void)
 {
 	/*开启时钟*/
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);		//开启GPIOB的时钟
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);		//开启GPIOA的时钟
 	
 	/*GPIO初始化*/
 	GPIO_InitTypeDef GPIO_InitStructure;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_11;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);		//将PB1和PB11引脚初始化为上拉输入
-	
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);						//将PA0引脚初始化为上拉输入
 }
 
 /**
@@ -34,7 +29,7 @@ uint8_t Key_GetNum(void)
 {
 	uint8_t KeyNum = 0;		//定义变量，默认键码值为0
 	
-	if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_1) == 0)			//读PB1输入寄存器的状态，如果为0，则代表按键1按下
+	if (GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) == 0)			//读PA0输入寄存器的状态，如果为0，则代表按键1按下
 	{
 		Delay_ms(20);											//延时消抖
 		while (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_1) == 0);	//等待按键松手
@@ -50,22 +45,5 @@ uint8_t Key_GetNum(void)
 		KeyNum = 2;												//置键码为2
 	}
 	
-	if (GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) == 0)
-	{
-		Delay_ms(20);											//延时消抖
-		while (GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) == 0);	//等待按键松手
-		Delay_ms(20);											//延时消抖
-		KeyNum = 3;
-		Mode ^=1;
-	}
-	
 	return KeyNum;			//返回键码值，如果没有按键按下，所有if都不成立，则键码为默认值0
-}
-
-/**
-  *函数：获取当前验收模式
-  */
-uint8_t Key_GetMode(void)
-{
-	return Mode;
 }
